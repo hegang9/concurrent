@@ -1,0 +1,41 @@
+比较-交换（Compare-and-Swap，简称 CAS）是现代并发编程中一项至关重要的原子操作。它允许线程在不使用了传统锁的情况下，安全地更新共享数据，是实现无锁数据结构和高性能并发组件的基石
+
+CAS包含三个基本操作数：
+
+V：要读写的内存位置（如一个共享变量）。
+
+A：线程预期的该内存位置的旧值。
+
+B：希望设置的新值。
+
+bool CAS(int* V, int A, int B) {
+    if (*V == A) {  // 比较：当前内存值是否等于预期原值A
+        *V = B;     // 交换：如果相等，则更新为新值B
+        return true; // 成功
+    } else {
+        return false; // 失败
+    }
+}
+
+比较和交换这两个步骤是作为一个不可分割的单一原子指令执行的。这保证了在执行过程中，不会有其他线程插入修改 *V的值。
+
+有两个主要变体：	
+compare_exchange_weak：允许在某些情况下失败（如伪失败），适用于循环重试（循环可消除伪失败）的场景，通常性能更好。
+compare_exchange_strong：保证只有在实际不相等时才失败，适用于不需要频繁重试的场景。
+它们的模板原型如下：
+bool compare_exchange_weak(T& expected, T desired,
+                           std::memory_order success = std::memory_order_seq_cst,
+                           std::memory_order failure = std::memory_order_seq_cst) noexcept;
+
+bool compare_exchange_weak(T& expected, T desired,
+                           std::memory_order success = std::memory_order_seq_cst,
+                           std::memory_order failure = std::memory_order_seq_cst) volatile noexcept;
+
+bool compare_exchange_strong(T& expected, T desired,
+                            std::memory_order success = std::memory_order_seq_cst,
+                            std::memory_order failure = std::memory_order_seq_cst) noexcept;
+
+bool compare_exchange_strong(T& expected, T desired,
+                            std::memory_order success = std::memory_order_seq_cst,
+                            std::memory_order failure = std::memory_order_seq_cst) volatile noexcept;
+
